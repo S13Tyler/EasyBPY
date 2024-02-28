@@ -1,3 +1,4 @@
+
 #region INFO
 '''
     == EasyBPY 0.2.0 ==
@@ -6,7 +7,7 @@
     ---
     This purpose of this module is to simplify the use of the Blender API
     (bpy) by creating an extra layer of abstraction that is more human-
-    readable, memorizable and reduces the user's exposure to complex code 
+    readable, memorizable and reduces the user's exposure to complex code
     paths.
     EasyBPY can be added to Blender by installing it into the:
                 ../scripts/modules
@@ -29,6 +30,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 #endregion
+
 #region IMPORTS
 import bpy
 import bpy.types
@@ -36,6 +38,7 @@ from mathutils import Vector, Matrix, Euler
 import math
 import random
 #endregion
+
 #region RENDER SETTINGS
 def set_render_engine_to_cycles():
     get_scene().render.engine = 'CYCLES'
@@ -153,6 +156,7 @@ def set_render_fps(val, base = 1.0):
     get_scene().render.fps = val
     get_scene().render.fps_base = base
 #endregion
+
 #region APPENDING / LINKING
 def append(file, category, object):
     if '\\' in file:
@@ -172,16 +176,16 @@ def append_brush(file, name):
 
 def append_collection(file, name):
     append(file, "Collection", name)
-    
+
 def append_freestyle_line_style(file, name):
     append(file, "FreestyleLineStyle", name)
 
 def append_image(file, name):
     append(file, "Image", name)
-    
+
 def append_material(file, name):
     append(file, "Material", name)
-    
+
 def append_mesh(file, name):
     append(file, "Mesh", name)
 
@@ -224,16 +228,16 @@ def link_brush(file, name):
 
 def link_collection(file, name):
     link(file, "Collection", name)
-    
+
 def link_freestyle_line_style(file, name):
     link(file, "FreestyleLineStyle", name)
 
 def link_image(file, name):
     link(file, "Image", name)
-    
+
 def link_material(file, name):
     link(file, "Material", name)
-    
+
 def link_mesh(file, name):
     link(file, "Mesh", name)
 
@@ -259,6 +263,7 @@ def link_world(file, name):
     link(file, "World", name)
 
 #endregion
+
 #region OBJECTS
 def create_object(name = None, col = None):
     if name is None:
@@ -284,7 +289,7 @@ def copy_object(tocopy, col = None):
     new_obj = None
     to_copy = get_object(tocopy)
     col_ref = None
-    
+
     # Assess col
     if col == None:
         col_ref = get_active_collection()
@@ -308,7 +313,7 @@ def get_active_object():
 
 def set_active_object(ref=None):
     objref = get_object(ref)
-    bpy.context.view_layer.objects.active = objref 
+    bpy.context.view_layer.objects.active = objref
 
 def clear_active_object():
     bpy.context.view_layer.objects.active = None
@@ -487,7 +492,7 @@ def get_children(ref = None):
 def set_parent(child = None,parent = None):
     child = get_object(child)
     parent = get_object(parent)
-    child.parent = parent 
+    child.parent = parent
     child.matrix_parent_inverse = parent.matrix_world.inverted()
 
 def clear_parent(ref = None, keep_location = True):
@@ -504,6 +509,7 @@ def get_bounding_box(ref = None):
 def get_bounding_box_corners(ref = None):
     return [ref.matrix_world @ Vector(corner) for corner in get_bounding_box(ref)]
 #endregion
+
 #region OBJECTS - CONVERSION
 def convert_to_mesh(ref):
     objref = get_object(ref)
@@ -523,6 +529,7 @@ def convert_to_curve(ref):
     select_object(objref)
     bpy.ops.object.convert(target='CURVE')
 #endregion
+
 #region OBJECTS - SELECTION
 def select_all_meshes():
     bpy.ops.object.select_by_type(type='MESH')
@@ -632,6 +639,7 @@ def select_objects_by_vertex(count = 0, mode="EQUAL"):
         o.select_set(True)
 
 #endregion
+
 #region OBJECTS - PRIMITIVES
 # Mesh
 def create_plane():
@@ -777,11 +785,12 @@ def create_text():
     return create_text_object()
 
 #endregion
+
 #region OBJECTS - CONSTRAINTS
 def add_constraint(type, ref = None, name = ""):
     objref = get_object(ref)
     new_con = objref.constraints.new(type)
-    if name : 
+    if name :
         new_con.name = name
     for area in bpy.context.screen.areas:
         if area.type == 'PROPERTIES':
@@ -813,7 +822,7 @@ def remove_constraint(name = None, ref = None):
             objref.constraints.remove(name)
     else:
         remove_constraint(objref.constraints[0])
-    
+
     for area in bpy.context.screen.areas:
         if area.type == 'PROPERTIES':
             area.tag_redraw()
@@ -899,6 +908,7 @@ def add_pivot_constraint(ref = None, name = ""):
 def add_shrinkwrap_constraint(ref = None, name = ""):
     return add_constraint('SHRINKWRAP', ref, name)
 #endregion
+
 #region MODES
 def set_mode(ref=None, newmode=None,):
     if newmode is not None:
@@ -949,13 +959,15 @@ def set_pose_mode(ref=None):
     set_mode(ref, 'POSE')
 
 def pose_mode(ref=None):
-    set_pose_mode(ref) 
+    set_pose_mode(ref)
 
 #endregion
+
 #region SCENES
 def get_scene():
     return bpy.context.scene
 #endregion
+
 #region VISIBILITY
 def hide_object(ref=None):
     objs = get_objects(ref)
@@ -1025,6 +1037,7 @@ def display_as_wire(ref):
     for obj in objs:
         obj.display_type = 'WIRE'
 #endregion
+
 #region TRANSFORMATIONS
 def location(ref = None, loc = None):
     objref = get_object(ref)
@@ -1039,7 +1052,7 @@ def rotation(ref = None, rot = None):
         objref.rotation_euler = Vector((rot[0],rot[1],rot[2]))
     else:
         return objref.rotation_euler
-            
+
 def scale(ref = None, scale = None):
     objref = get_object(ref)
     if scale is not None:
@@ -1253,7 +1266,7 @@ def rotate_around_local_axis(deg, axis = Vector(), ref = None, point = None):
             pointref = get_median_point_of_objects(objs)
     else:
         pointref = point
-    
+
     axis.normalize()
     for obj in objs:
         tempaxis = axis.copy()
@@ -1305,7 +1318,7 @@ def scale_along_axis(val, axis, ref = None, point = None):
         obj.scale[0] *= temp[0]
         obj.scale[1] *= temp[1]
         obj.scale[2] *= temp[2]
-        
+
         tempaxis = axis.copy()
         tempaxis.rotate(obj.rotation_euler)
         fac = (obj.location - pointref).dot(tempaxis) * (val-1)
@@ -1386,7 +1399,7 @@ def scale_perpendicular_to_x(val, ref = None, point = None):
             pointref = get_median_point_of_objects(objs)
     else:
         pointref = point
-    
+
     for obj in objs:
         scale_vector(Vector((1.0, val, val)), obj)
         axis = (obj.location - pointref) * Vector((0.0, 1.0, 1.0))
@@ -1405,7 +1418,7 @@ def scale_perpendicular_to_y(val, ref = None, point = None):
             pointref = get_median_point_of_objects(objs)
     else:
         pointref = point
-    
+
     for obj in objs:
         scale_vector(Vector((val, 1.0, val)), obj)
         axis = (obj.location - pointref) * Vector((1.0, 0.0, 1.0))
@@ -1424,7 +1437,7 @@ def scale_perpendicular_to_z(val, ref = None, point = None):
             pointref = get_median_point_of_objects(objs)
     else:
         pointref = point
-    
+
     for obj in objs:
         scale_vector(Vector((val, val, 1.0)), obj)
         axis = (obj.location - pointref) * Vector((1.0, 1.0, 0.0))
@@ -1432,6 +1445,7 @@ def scale_perpendicular_to_z(val, ref = None, point = None):
         translate_along_axis(fac, axis, obj)
 
 #endregion
+
 #region ANIMATION / KEYFRAMES
 # Example: path is the object and property is 'location'
 def add_keyframe(path, property, frame = None):
@@ -1445,19 +1459,19 @@ def add_keyframe(path, property, frame = None):
             for keyframe in fcurve.keyframe_points:
                 if keyframe.co[0] == frame:
                     keyframes.append(keyframe)
-    
+
     # Updating Interface:
     for area in bpy.context.screen.areas:
         area.tag_redraw()
-        
-    return keyframes if len(keyframes) > 1 else keyframes[0] 
-    
+
+    return keyframes if len(keyframes) > 1 else keyframes[0]
+
 def remove_keyframe(keyframes):
     if type(keyframes) is not list:
         keyframes = [keyframes]
     for keyframe in keyframes:
         fcurves = keyframe.id_data.fcurves
-        for fcurve in fcurves:    
+        for fcurve in fcurves:
             for keyframe1 in fcurve.keyframe_points:
                 if keyframe1 == keyframe:
                     fcurve.keyframe_points.remove(keyframe)
@@ -1473,6 +1487,7 @@ def delete_animation_data(ref = None):
     for obj in objs:
         obj.animation_data_clear()
 #endregion
+
 #region DRIVERS
 
 def add_driver(path,property,index=-1):
@@ -1484,11 +1499,12 @@ def add_driver(path,property,index=-1):
     return fcurves.driver
 
 def remove_driver(driver):
-    for fcurve in driver.id_data.animation_data.drivers: 
+    for fcurve in driver.id_data.animation_data.drivers:
         if fcurve.driver == driver:
             driver.id_data.animation_data.drivers.remove(fcurve)
 
 #endregion
+
 #region 3D CURSOR
 def selection_to_cursor_without_offset():
     bpy.ops.view3d.snap_selected_to_cursor(use_offset=False)
@@ -1513,7 +1529,7 @@ def selection_to_active():
 
 def cursor_to_grid():
     bpy.ops.view3d.snap_cursor_to_grid()
-    
+
 def get_cursor_location():
     return bpy.context.scene.cursor.location
 
@@ -1527,6 +1543,7 @@ def get_cursor_rotation_mode():
     return bpy.context.scene.cursor.rotation_mode
 
 #endregion
+
 #region PIVOT POINT
 def set_pivot_point_to_cursor():
     get_scene().tool_settings.transform_pivot_point = 'CURSOR'
@@ -1543,6 +1560,7 @@ def set_pivot_point_to_active_element():
 def set_pivot_point_to_bounding_box_center():
     get_scene().tool_settings.transform_pivot_point = 'BOUNDING_BOX_CENTER'
 #endregion
+
 #region ORIGINS
 def set_geometry_to_origin(ref = None):
     objref = get_object(ref)
@@ -1589,6 +1607,7 @@ def set_origin_to_centermass_volume(ref = None):
 def origin_to_centermass_volume(ref = None):
     set_origin_to_centermass_volume(ref)
 #endregion
+
 #region SHADING
 def shade_object_smooth(ref = None):
     objref = None
@@ -1634,6 +1653,7 @@ def set_smooth_angle(ref, degrees = 60):
         objref.data.use_auto_smooth = True
     objref.data.auto_smooth_angle = math.radians(degrees)
 #endregion
+
 #region LIGHTING
 def get_light(ref):
     obj = get_object(ref)
@@ -1675,6 +1695,7 @@ def light_power_multiply(val = 0, ref = None):
 def light_intensity_multiply(val = 0, ref = None):
     light_power_multiply(val,ref)
 #endregion
+
 #region MESHES
 def create_mesh(name):
     return bpy.data.meshes.new(name)
@@ -1741,6 +1762,7 @@ def get_selected_faces(ref = None):
     bpy.ops.object.mode_set(mode=tmp_mode)
     return selected_faces
 #endregion
+
 #region CURVES
 def get_curve_points(ref = None):
     obj = get_object(ref)
@@ -1764,6 +1786,7 @@ def get_selected_curve_points(ref = None):
                     points.append(point)
     return points
 #endregion
+
 #region VERTEX GROUPS
 ''' FUTURE UPDATE
 def create_vertex_group(ref, group_name):
@@ -1774,6 +1797,7 @@ def delete_vertex_group(ref, group_name):
     pass
 '''
 #endregion
+
 #region SHAPE KEYS
 def add_shape_key(name = None, ref = None):
     objref = get_object(ref)
@@ -1818,11 +1842,13 @@ def get_shape_keys(ref = None):
 def remove_shape_keys(ref = None):
     return remove_all_shape_keys(ref)
 #endregion
+
 #region PARTICLE SYSTEMS
 def get_particle_systems(ref):
     objref = get_object(ref)
     return objref.particle_systems
 #endregion
+
 #region COLLECTIONS
 def create_collection(name):
     if not collection_exists(name):
@@ -2068,6 +2094,7 @@ def collection_exists(col):
     return col.name in bpy.data.collections
 
 #endregion
+
 #region MATERIALS
 def create_material(name):
     return bpy.data.materials.new(name)
@@ -2103,7 +2130,7 @@ def add_material_to_object(ref, mat):
         objref = get_object(ref)
     else:
         objref = ref
-    
+
     if is_string(mat):
         matref = get_material(mat)
     else:
@@ -2135,7 +2162,7 @@ def remove_materials(ref = None):
                 names.append(m.name)
             for n in names:
                 remove_material_from_object(o,n)
-                
+
 def remove_all_materials(ref = None):
     remove_materials(ref)
 
@@ -2180,6 +2207,7 @@ def get_material_names_from_object(ref):
         name_list.append(m.name)
     return name_list
 #endregion
+
 #region NODES
 def set_material_use_nodes(matref, value):
     matref.use_nodes = value
@@ -2202,7 +2230,7 @@ def get_node(nodes,ref):
 def get_nodes(mat):
     node_tree = mat.node_tree
     if node_tree:
-      return node_tree.nodes 
+      return node_tree.nodes
 
 def get_node_tree(matref, make_tree = True):
     matref.use_nodes = make_tree
@@ -2259,11 +2287,12 @@ def get_world_nodes(index=None):
         return bpy.data.worlds[0].node_tree.nodes
 
 #endregion
+
 #region TEXTURES AND IMAGES
 def create_texture(name="Texture", type='CLOUDS'):
     if type is not None:
         return bpy.data.textures.new(name, type.upper())
-    
+
 def get_texture(ref):
     if is_string(ref):
         if ref in bpy.data.textures:
@@ -2316,7 +2345,8 @@ def delete_image(ref):
         bpy.data.images.remove(ref)
 
 #endregion
-#region MODIFIERS 
+
+#region MODIFIERS
 def add_modifier(ref = None, name = "Modifier", id="SUBSURF"):
     objrefs = get_objects(ref)
     new_mods = []
@@ -2327,7 +2357,7 @@ def add_modifier(ref = None, name = "Modifier", id="SUBSURF"):
     for area in bpy.context.screen.areas:
         if area.type == 'PROPERTIES':
             area.tag_redraw()
-    
+
     if len(new_mods)>1:
         return new_mods
     else:
@@ -2353,7 +2383,7 @@ def remove_modifier(ref = None, name = None):
             objref.modifiers.remove(name)
     else:
         objref.modifiers.remove(objref.modifiers[0])
-    
+
     for area in bpy.context.screen.areas:
         if area.type == 'PROPERTIES':
             area.tag_redraw()
@@ -2541,6 +2571,7 @@ def add_surface(ref=None, modname = ""):
 def add_simulation(ref=None, modname = ""):
     return add_modifier(ref,modname,'SIMULATION')
 #endregion
+
 #region PHYSICS
 def add_force_field_physics(ref=None):
     objref = get_object(ref)
@@ -2573,6 +2604,7 @@ def add_rigid_body_constraint_physics(ref=None):
     bpy.context.view_layer.objects.active = objref
     bpy.ops.rigidbody.constraint_add()
 #endregion
+
 #region PHYSICS - FLUIDS
 
 def set_fluid_type(fluidtype = None):
@@ -2589,7 +2621,7 @@ def set_fluid_type(fluidtype = None):
     else:
         ftype = "NONE"
 
-# Effector Parameters 
+# Effector Parameters
 def fluid_effector_type(type):
     bpy.context.object.modifiers["Fluid"].effector_settings.effector_type = type
 
@@ -2758,7 +2790,7 @@ def fluid_domain_border_colisions(side,toggle):
     if side == 'bottom' or side == 'BOTTOM':
         bpy.context.object.modifiers["Fluid"].domain_settings.use_collision_border_bottom = bool
 
-# Caches      
+# Caches
 def fluid_domain_cache_folder(value):
     bpy.context.object.modifiers["Fluid"].domain_settings.cache_directory = value
 
@@ -2807,7 +2839,7 @@ def fluid_cache_precision(value):
         value = "32"
     bpy.context.object.modifiers["Fluid"].domain_settings.openvdb_data_depth = value
 
-#Collections 
+#Collections
 def fluid_flow_collection(value):
     bpy.context.object.modifiers["Fluid"].domain_settings.fluid_group = bpy.data.collections[value]
 
@@ -2925,7 +2957,7 @@ def fluid_view_slice_axis(value):
 
 def fluid_view_slice_position(value):
     boolean = float(value)
-    bpy.context.object.modifiers["Fluid"].domain_settings.slice_depth = boolean 
+    bpy.context.object.modifiers["Fluid"].domain_settings.slice_depth = boolean
 
 def fluid_view_grid_toggle(value):
     if value.upper() == 'FALSE':
@@ -3260,7 +3292,7 @@ def fluid_fluid_mesh_use_speed_vectors(value):
     if value.upper() == 'FALSE':
         h =bool(False)
     elif value.upper() == 'TRUE':
-        h =bool(True)    
+        h =bool(True)
     bpy.context.object.modifiers["Fluid"].domain_settings.use_speed_vectors = h
 
 def fluid_fluid_mesh_generator(value):
@@ -3303,6 +3335,7 @@ def fluid_domain_adapt_threshold(value):
     else:
         bpy.context.object.modifiers["Fluid"].domain_settings.adapt_threshold = floatval
 #endregion
+
 #region PHYSICS - COLLISION
 def collision_use(value = True):
     bpy.context.object.collision.use = value
@@ -3359,10 +3392,11 @@ def collision_soft_cloth_thick_in(value):
 
 def collision_soft_cloth_single_side(value = True):
     bpy.context.object.collision.use_culling = value
-    
+
 def collision_soft_cloth_override_normals(value = True):
     bpy.context.object.collision.use_normal = value
 #endregion
+
 #region TEXT OBJECTS
 def create_text_file(textname):
     return bpy.data.texts.new(textname)
@@ -3373,10 +3407,11 @@ def delete_text_file(textname):
         bpy.data.texts.remove(t)
     else:
         bpy.data.texts.remove(textname)
-    
+
 def get_lines_in_text_object(textname):
     return bpy.data.texts[textname].lines
 #endregion
+
 #region FAKE USERS
 def set_fake_user(ref, use = True):
     ref.use_fake_user = use
@@ -3384,6 +3419,7 @@ def set_fake_user(ref, use = True):
 def use_fake_user(ref, use = True):
     ref.use_fake_user = use
 #endregion
+
 #region DATA CHECKS
 def is_string(ref):
     if isinstance(ref, str):
@@ -3391,34 +3427,39 @@ def is_string(ref):
     else:
         return False
 #endregion
+
 #region DATA CONSTRUCTORS
 def make_vector(data):
     return Vector((data[0],data[1],data[2]))
+
 def make_obj_list(ref):
     if ref is None:
         return [get_object(ref)]
     return get_objects(ref)
 #endregion
+
 #region MISC
 def clear_unwanted_data():
     delete_unused_data()
+
 def clear_unused_data():
     #bpy.ops.outliner.orphans_purge()
     delete_unused_data()
+
 def delete_unused_data():
     #bpy.data.orphans_purge() # is considered experimental
     for block in bpy.data.lights:
         if block.users == 0:
             bpy.data.lights.remove(block)
-    
+
     for block in bpy.data.curves:
         if block.users == 0:
             bpy.data.curves.remove(block)
-    
+
     for block in bpy.data.cameras:
         if block.users == 0:
             bpy.data.cameras.remove(block)
-            
+
     for block in bpy.data.meshes:
         if block.users == 0:
             bpy.data.meshes.remove(block)
@@ -3434,9 +3475,11 @@ def delete_unused_data():
     for block in bpy.data.images:
         if block.users == 0:
             bpy.data.images.remove(block)
+
 def debug_test():
     print("EasyBPY debug output")
 #endregion
+
 #region COMMON WORKFLOW FUNCTIONS
 def get_objects_containing(ref):
     result = []
@@ -3545,7 +3588,7 @@ def organize_outliner():
         else:
             col = c(colname)
         m(so(),col)
-        
+
     # Surfaces
     d()
     select_all_surfaces()
@@ -3558,7 +3601,7 @@ def organize_outliner():
         else:
             col = c(colname)
         m(so(),col)
-        
+
     # Metas
     d()
     select_all_metas()
@@ -3649,7 +3692,7 @@ def organize_outliner():
         else:
             col = c(colname)
         m(so(),col)
-    
+
     # End
     d()
 
@@ -3780,7 +3823,7 @@ def random_visibility_keyframes(objects = None, phase_min = 0, phase_max = 75, s
                     show_in_render(obj)
                     obj.keyframe_insert(data_path = "hide_viewport", frame = count)
                     obj.keyframe_insert(data_path = "hide_render", frame = count)
-                
+
                 # Sustain a phase:
                 count += random.randint(sustain_min, sustain_max)
                 if count >= end:

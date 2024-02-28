@@ -1,3 +1,9 @@
+=== 0.2.1 ===
+[ S13Tyler ]
+- Added
+- Removed
+
+
 === 0.2.0 ===
 
 [ Curtis Holt ]
@@ -399,7 +405,7 @@
 === 0.0.9 ===
 
 [ Curtis Holt ]
-- Web page has been created to help introduce people to the 
+- Web page has been created to help introduce people to the
   module (curtisholt.online/easybpy)
 - Created new category 'LIGHTING'.
 - + get_light
@@ -771,7 +777,7 @@
 - get_collection will return active if no argument provided.
 - get_col adjusted to return selected when calling get_collection
 - + get_active_collection
-- + set_active_collection 
+- + set_active_collection
     C Note: String check was missing, added.
 - + set_active_collection - REQUIRES FIXING
 
