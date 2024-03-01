@@ -34,9 +34,15 @@
 #region IMPORTS
 import bpy
 import bpy.types
-from mathutils import Vector, Matrix, Euler
 import math
 import random
+import addon_utils
+import os
+from mathutils import Vector, Matrix, Euler
+from pathlib import Path
+from typing import Any
+from data.lists_lib import *
+from data.bl_info import BL_Info, addon_name as ADDON_NAME
 #endregion
 
 #region RENDER SETTINGS
@@ -274,7 +280,7 @@ def create_object(name = None, col = None):
     # Assess col
     if col == None:
         col_ref=bpy.context.view_layer.active_layer_collection.collection
-    elif is_string(col):
+    elif is_str(col):
         if col in bpy.data.collections:
             col_ref = bpy.data.collections[col]
         else:
@@ -293,7 +299,7 @@ def copy_object(tocopy, col = None):
     # Assess col
     if col == None:
         col_ref = get_active_collection()
-    elif is_string(col):
+    elif is_str(col):
         if collection_exists(col):
             col_ref = get_collection(col)
         else:
@@ -363,7 +369,7 @@ def select_all_objects(col = None):
             co.select_set(True)
     else:
         col_ref = None
-        if is_string(col):
+        if is_str(col):
             if collection_exists(col):
                 col_ref = get_collection(col)
         else:
@@ -416,7 +422,7 @@ def get_object(ref):
     if ref is None:
         objref = ao()
     else:
-        if is_string(ref):
+        if is_str(ref):
             if object_exists(ref):
                 objref = bpy.data.objects[ref]
         else:
@@ -439,7 +445,7 @@ def get_objects(ref = None):
                     for ob_name in ref:
                         if object_exists(ob_name):
                             objref.append(bpy.data.objects[ob_name])
-        elif is_string(ref):
+        elif is_str(ref):
             if object_exists(ref):
                 objref.append(bpy.data.objects[ref])
         elif isinstance(ref, bpy.types.Object) :
@@ -457,7 +463,7 @@ def get_median_point_of_objects(objs):
     return point_loc
 
 def object_exists(ref):
-    if is_string(ref):
+    if is_str(ref):
         if ref in bpy.data.objects:
             return True
         else:
@@ -472,12 +478,12 @@ def object_exists(ref):
 def rename_object(obj, newname):
     objref = None
     # obj is string
-    if is_string(obj):
+    if is_str(obj):
         objref = get_object(obj)
     else:
         objref = obj
     # set name - only if string
-    if is_string(newname):
+    if is_str(newname):
         objref.name = newname
         return True
     else:
@@ -814,7 +820,7 @@ def remove_constraint(name = None, ref = None):
     objref = get_object(ref)
 
     if name is not None:
-        if is_string(name):
+        if is_str(name):
             if name in objref.constraints:
                 mod = get_constraint(name,objref)
                 objref.constraints.remove(mod)
@@ -1612,7 +1618,7 @@ def origin_to_centermass_volume(ref = None):
 def shade_object_smooth(ref = None):
     objref = None
     if ref is not None:
-        if is_string(ref):
+        if is_str(ref):
             objref = get_object(ref)
         else:
             objref = ref
@@ -1629,7 +1635,7 @@ def shade_smooth(ref = None):
 def shade_object_flat(ref = None):
     objref = None
     if ref is not None:
-        if is_string(ref):
+        if is_str(ref):
             objref = get_object(ref)
         else:
             objref = ref
@@ -1645,7 +1651,7 @@ def shade_flat(ref = None):
 
 def set_smooth_angle(ref, degrees = 60):
     objref = None
-    if is_string(ref):
+    if is_str(ref):
         objref = get_object(ref)
     else:
         objref = ref
@@ -1704,13 +1710,13 @@ def get_all_meshes():
     return bpy.data.meshes
 
 def get_vertices(ref):
-    if is_string(ref):
+    if is_str(ref):
         return get_object(ref).data.vertices
     else:
         return ref.data.vertices
 
 def get_edges(ref):
-    if is_string(ref):
+    if is_str(ref):
         return get_object(ref).data.edges
     else:
         return ref.data.edges
@@ -1719,14 +1725,14 @@ def get_faces(ref):
     return get_polygons(ref)
 
 def get_polygons(ref):
-    if is_string(ref):
+    if is_str(ref):
         return get_object(ref).data.polygons
     else:
         return ref.data.polygons
 
 def get_mesh_from_object(ref):
     objref = None
-    if is_string(ref):
+    if is_str(ref):
         objref = get_object(ref)
     else:
         objref = ref
@@ -1860,7 +1866,7 @@ def create_collection(name):
 
 def delete_collection(col, delete_objects = False, link_objects = False):
     colref = None
-    if is_string(col):
+    if is_str(col):
             colref = get_collection(col)
     else:
         colref = col
@@ -1886,7 +1892,7 @@ def delete_objects_in_collection(col):
     colref = None
     # col is a string
     if collection_exists(col):
-        if is_string(col):
+        if is_str(col):
             colref = get_collection(col)
         else:
             colref = col
@@ -1898,7 +1904,7 @@ def delete_objects_in_collection(col):
 
 def delete_hierarchy(col):
     colref = None
-    if is_string(col):
+    if is_str(col):
         colref = get_collection(col)
     else:
         colref = col
@@ -1911,7 +1917,7 @@ def delete_hierarchy(col):
 
 def duplicate_collection(col):
     colref = None
-    if is_string(col):
+    if is_str(col):
         colref = get_collection(col)
     else:
         colref = col
@@ -1923,7 +1929,7 @@ def duplicate_collection(col):
     return get_collection(new_name)
 
 def get_objects_from_collection(col):
-    if is_string(col):
+    if is_str(col):
         return bpy.data.collections[col].objects
     else:
         return col.objects
@@ -1932,7 +1938,7 @@ def get_collection(ref = None):
     if ref is None:
         return bpy.context.view_layer.active_layer_collection.collection
     else:
-        if is_string(ref):
+        if is_str(ref):
             if ref in bpy.data.collections:
                 return bpy.data.collections[ref]
             else:
@@ -1948,7 +1954,7 @@ def get_active_collection():
 
 def set_active_collection(ref):
     colref = None
-    if is_string(ref):
+    if is_str(ref):
         colref = get_collection(ref)
     else:
         colref = ref
@@ -2019,7 +2025,7 @@ def get_list_of_collections():
     return get_all_collections()
 
 def link_object_to_collection(ref, col):
-    if is_string(col):
+    if is_str(col):
         objref = get_object(ref)
         bpy.data.collections[col].objects.link(objref)
     else:
@@ -2030,7 +2036,7 @@ def link_object_to_collection(ref, col):
 
 def link_objects_to_collection(ref, col):
     objs = get_objects(ref)
-    if is_string(col):
+    if is_str(col):
         for o in objs:
             bpy.data.collections[col].objects.link(o)
     else:
@@ -2038,7 +2044,7 @@ def link_objects_to_collection(ref, col):
             col.objects.link(o)
 
 def unlink_object_from_collection(ref, col):
-    if is_string(col):
+    if is_str(col):
         objref = get_object(ref)
         bpy.data.collections[col].objects.unlink(objref)
     else:
@@ -2048,7 +2054,7 @@ def unlink_object_from_collection(ref, col):
 def unlink_objects_from_collection(ref, col):
     objs = get_objects(ref)
     colref = None
-    if is_string(col):
+    if is_str(col):
         colref = get_collection(col)
     else:
         colref = col
@@ -2058,7 +2064,7 @@ def unlink_objects_from_collection(ref, col):
 def move_object_to_collection(ref, col):
     objref = get_object(ref)
     colref = None
-    if is_string(col):
+    if is_str(col):
         colref = get_collection(col)
     else:
         colref = col
@@ -2071,7 +2077,7 @@ def move_object_to_collection(ref, col):
 def move_objects_to_collection(ref, col):
     objs = get_objects(ref)
     colref = None
-    if is_string(col):
+    if is_str(col):
         colref = get_collection(col)
     else:
         colref = col
@@ -2089,7 +2095,7 @@ def get_object_collections(ref):
     return objref.users_collection
 
 def collection_exists(col):
-    if is_string(col):
+    if is_str(col):
         return col in bpy.data.collections
     return col.name in bpy.data.collections
 
@@ -2100,14 +2106,14 @@ def create_material(name):
     return bpy.data.materials.new(name)
 
 def material_exists(ref):
-    if is_string(ref):
+    if is_str(ref):
         return ref in bpy.data.materials
     # safety
     return ref.name in bpy.data.materials
 
 def delete_material(ref):
     matref = None
-    if is_string(ref):
+    if is_str(ref):
         matref = get_material(ref)
     else:
         matref = ref
@@ -2126,12 +2132,12 @@ def get_material(matname = None):
 def add_material_to_object(ref, mat):
     objref = None
     matref = None
-    if is_string(ref):
+    if is_str(ref):
         objref = get_object(ref)
     else:
         objref = ref
 
-    if is_string(mat):
+    if is_str(mat):
         matref = get_material(mat)
     else:
         matref = mat
@@ -2141,7 +2147,7 @@ def add_material_to_object(ref, mat):
 
 def remove_material_from_object(ref, matname):
     objref = None
-    if is_string(ref):
+    if is_str(ref):
         objref = get_object(ref)
     else:
         objref = ref
@@ -2220,7 +2226,7 @@ def get_material_nodes(ref):
     return mat.node_tree.nodes
 
 def get_node(nodes,ref):
-    if is_string(ref):
+    if is_str(ref):
         for n in nodes:
             if n.name == ref:
                 return n
@@ -2294,7 +2300,7 @@ def create_texture(name="Texture", type='CLOUDS'):
         return bpy.data.textures.new(name, type.upper())
 
 def get_texture(ref):
-    if is_string(ref):
+    if is_str(ref):
         if ref in bpy.data.textures:
             return bpy.data.textures[ref]
     else:
@@ -2312,7 +2318,7 @@ def rename_texture(ref, name):
         texref.name = name
 
 def delete_texture(ref):
-    if is_string(ref):
+    if is_str(ref):
         bpy.data.textures.remove(get_texture(ref))
     else:
         bpy.data.textures.remove(ref)
@@ -2321,7 +2327,7 @@ def create_image(name = 'Image', width = 1024, height = 1024):
     return bpy.data.images.new(name = name, width = width, height = height)
 
 def get_image(ref):
-    if is_string(ref):
+    if is_str(ref):
         if ref in bpy.data.images:
             return bpy.data.images[ref]
     else:
@@ -2339,7 +2345,7 @@ def rename_image(ref, name):
         imgref.name = name
 
 def delete_image(ref):
-    if is_string(ref):
+    if is_str(ref):
         bpy.data.images.remove(get_image(ref))
     else:
         bpy.data.images.remove(ref)
@@ -2375,7 +2381,7 @@ def get_modifier(ref, name):
 def remove_modifier(ref = None, name = None):
     objref = get_object(ref)
     if name is not None:
-        if is_string(name):
+        if is_str(name):
             if name in objref.modifiers:
                 mod = get_modifier(objref,name)
                 objref.modifiers.remove(mod)
@@ -2634,19 +2640,19 @@ def fluid_effector_thickness_value(value):
     bpy.context.object.modifiers["Fluid"].effector_settings.surface_distance = intvalue
 
 # Use effector, 1 = on 0 = off
-def fluid_effector_use_toggle(fbool):
+def fluid_effector_use_toggle(value):
     if value.upper() == 'FALSE':
-        h =bool(False)
+        h = bool(False)
     elif value.upper() == 'TRUE':
-        h =bool(True)
+        h = bool(True)
     bpy.context.object.modifiers["Fluid"].effector_settings.use_effector = h
 
 # Is Planar, 1 = on 0 = off
-def fluid_effector_is_planar(fbool):
+def fluid_effector_is_planar(value):
     if value.upper() == 'FALSE':
-        h =bool(False)
+        h = bool(False)
     elif value.upper() == 'TRUE':
-        h =bool(True)
+        h = bool(True)
     bpy.context.object.modifiers["Fluid"].effector_settings.use_plane_init = h
 
 def fluid_effector_velocity(value):
@@ -3402,7 +3408,7 @@ def create_text_file(textname):
     return bpy.data.texts.new(textname)
 
 def delete_text_file(textname):
-    if is_string(textname):
+    if is_str(textname):
         t = bpy.data.texts[textname]
         bpy.data.texts.remove(t)
     else:
@@ -3421,11 +3427,60 @@ def use_fake_user(ref, use = True):
 #endregion
 
 #region DATA CHECKS
-def is_string(ref):
-    if isinstance(ref, str):
-        return True
-    else:
-        return False
+def validate(*args):
+    for arg in args:
+        if arg is None or not arg:
+            return False
+        if is_str(arg):
+            if len(arg) <= 0:
+                return False
+    return True
+
+def is_none(ref) -> bool:
+    return ref is None
+
+def is_str(ref) -> bool:
+    return isinstance(ref, str)
+
+def is_float(ref) -> bool:
+    return isinstance(ref, float)
+
+def is_int(ref) -> bool:
+    return isinstance(ref, int)
+
+def is_number(ref) -> bool:
+    return is_float(ref) or is_int(ref)
+
+def is_bool(ref) -> bool:
+    return isinstance(ref, bool)
+
+def is_list(ref) -> bool:
+    return isinstance(ref, list)
+
+def is_tuple(ref) -> bool:
+    return isinstance(ref, tuple)
+
+def is_iterable(ref) -> bool:
+    return is_list(ref) or is_tuple(ref)
+
+def is_str_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.StringProperty)
+
+def is_float_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.FloatProperty)
+
+def is_int_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.IntProperty)
+
+def is_bool_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.BoolProperty)
+
+def is_collection_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.CollectionProperty)
+
+def is_pointer_prop(ref) -> bool:
+    return isinstance(ref, bpy.types.PointerProperty)
+
 #endregion
 
 #region DATA CONSTRUCTORS
@@ -3834,4 +3889,55 @@ def random_visibility_keyframes(objects = None, phase_min = 0, phase_max = 75, s
                     hide_in_render(obj)
                     obj.keyframe_insert(data_path = "hide_viewport", frame = count)
                     obj.keyframe_insert(data_path = "hide_render", frame = count)
+#endregion
+
+#region STRINGS
+def vect_to_str(v : Vector, use_parenthesis : bool = True) -> str:
+    result : str = str("%1.4f, %1.4f, %1.4f" % (v.x, v.y, v.z))
+    if use_parenthesis:
+        result = str("(%s)" % result)
+    return result
+#endregion
+
+#region BLENDER ADDON & USER
+def set_addon_name(name : str|None = None):
+    if validate(name):
+        ADDON_NAME = name
+
+def get_addon_name() -> str|None:
+    return ADDON_NAME if validate(ADDON_NAME) else None
+
+def get_addon_module() -> Any:
+    if len(get_addon_name()) > 0:
+        addon_module = [m for m in addon_utils.modules() if m.bl_info.get('name') == get_addon_name()][0]
+        return addon_module
+
+def get_bl_info() -> BL_Info:
+    m = get_addon_module()
+    if m:
+        return BL_Info(m.bl_info)
+
+def get_user_path() -> Path:
+    return os.path.join(Path(bpy.utils.resource_path('USER')).parent, get_addon_name())
+
+def get_addon_preferences():
+    return bpy.context.preferences.addons[get_addon_name()].preferences
+
+def prefs():
+    return get_addon_preferences()
+
+#endregion
+
+#region MATH
+def point_dist(p1 : Vector, p2 : Vector) -> float:
+    x = (p1.x - p2.x) ** 2
+    y = (p1.y - p2.y) ** 2
+    z = (p1.z - p2.z) ** 2
+    return float(math.sqrt(x + y + z))
+#endregion
+
+#region TEMPLATES & LISTS
+def get_prefix_chars():
+    return prefix_chars
+
 #endregion
