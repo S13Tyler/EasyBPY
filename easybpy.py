@@ -406,6 +406,11 @@ def delete_objects(objlist = None):
 def duplicate_object(tocopy,col):
     return copy_object(tocopy,col)
 
+def duplicate_object(ref = None):
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        focus_object(ref)
+        bpy.ops.object.duplicate(linked = False)
+
 def instance_object(ref, newname = None, col = None):
     deselect_all_objects()
     select_object(ref)
@@ -643,6 +648,11 @@ def select_objects_by_vertex(count = 0, mode="EQUAL"):
     objs = get_objects_by_vertex(count, mode)
     for o in objs:
         o.select_set(True)
+
+def focus_object(ref = None):
+    if validate(ref):
+        deselect_all_objects()
+        select_object(ref, True)
 
 #endregion
 
@@ -972,6 +982,9 @@ def pose_mode(ref=None):
 #region SCENES
 def get_scene():
     return bpy.context.scene
+
+def get_scene_scale():
+    return get_scene().unit_settings.scale_length
 #endregion
 
 #region VISIBILITY
@@ -1104,6 +1117,12 @@ def apply_rotation_and_scale(ref = None):
         deselect_all_objects()
         select_object(ref)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+def clear_ao_location_and_rotation(ref = ao()):
+    if validate(ref):
+        focus_object(ref)
+        bpy.ops.object.rotation_clear()
+        bpy.ops.object.location_clear()
 
 # Translations:
 
@@ -1289,7 +1308,45 @@ def rotate_around_local_y(deg, ref = None, point = None):
 def rotate_around_local_z(deg, ref = None, point = None):
     rotate_around_local_axis(deg, Vector((0.0,0.0,1.0)), ref, point)
 
+def rotation_radians(euler_rot : Vector) -> Vector|list[float]:
+    # result : Vector = Vector()
+    # result.x = math.radians(euler_rot.x)
+    # result.y = math.radians(euler_rot.y)
+    # result.z = math.radians(euler_rot.z)
+    # return result
+    return Vector((math.radians(euler_rot.x), math.radians(euler_rot.y), math.radians(euler_rot.z)))
+
+def rotation_degrees(euler_rot : Vector) -> Vector|list[float]:
+    # result : Vector = Vector()
+    # result.x = math.degrees(euler_rot.x)
+    # result.y = math.degrees(euler_rot.y)
+    # result.z = math.degrees(euler_rot.z)
+    # return result
+    return Vector((math.degrees(euler_rot.x), math.degrees(euler_rot.y), math.degrees(euler_rot.z)))
+
+def get_object_world_location(ref) -> Vector:
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        return ref.matrix_world.to_translation()
+    return Vector()
+
+def get_object_world_rotation(ref) -> Vector:
+    # result : Vector = Vector()
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        # euler_rot : Euler = ref.matrix_world.to_euler('XYZ')
+        # result.x = math.degrees(euler_rot.x)
+        # result.y = math.degrees(euler_rot.y)
+        # result.z = math.degrees(euler_rot.z)
+        return rotation_degrees(ref.matrix_world.to_euler('XYZ'))
+    return Vector()
+
 # Scaling:
+
+def is_inverse_scaled(ref) -> bool:
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        return False
+    for v in ref.scale:
+        if v < 0.0:
+            return True
 
 def scale_vector(vec, ref = None):
     objs = make_obj_list(ref)
@@ -1450,6 +1507,26 @@ def scale_perpendicular_to_z(val, ref = None, point = None):
         fac = axis.magnitude * (val-1)
         translate_along_axis(fac, axis, obj)
 
+# Transform locks
+def lock_object_location(ref, bUnlock : bool = False):
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        b = not bUnlock
+        ref.lock_location = (b, b, b)
+
+def lock_object_rotation(ref, bUnlock : bool = False):
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        b = not bUnlock
+        ref.lock_rotation = (b, b, b)
+
+def lock_object_scale(ref, bUnlock : bool = False):
+    if validate(ref) and isinstance(ref, bpy.types.Object):
+        b = not bUnlock
+        ref.lock_scale = (b, b, b)
+
+def lock_object_transforms(ref, bUnlock : bool = False):
+    lock_object_location(ref, bUnlock)
+    lock_object_rotation(ref, bUnlock)
+    lock_object_scale(ref, bUnlock)
 #endregion
 
 #region ANIMATION / KEYFRAMES
@@ -2377,6 +2454,19 @@ def get_modifier(ref, name):
         return objref.modifiers[name]
     else:
         return False
+
+def has_modifier(ref, name : str|None = None):
+    objref = get_object(ref)
+    if not validate(objref):
+        return False
+    if not validate(name):
+        return validate(objref.modifiers)
+    elif name in objref.modifiers:
+        return True
+    else:
+        for m in objref.modifiers:
+            return m.type == name.upper()
+    return False
 
 def remove_modifier(ref = None, name = None):
     objref = get_object(ref)
@@ -3891,20 +3981,19 @@ def random_visibility_keyframes(objects = None, phase_min = 0, phase_max = 75, s
                     obj.keyframe_insert(data_path = "hide_render", frame = count)
 #endregion
 
-#region STRINGS
-def vect_to_str(v : Vector, use_parenthesis : bool = True) -> str:
-    result : str = str("%1.4f, %1.4f, %1.4f" % (v.x, v.y, v.z))
-    if use_parenthesis:
-        result = str("(%s)" % result)
-    return result
-#endregion
 
 #region BLENDER ADDON & USER
+def in_devmode() -> bool:
+    return bpy.context.preferences.view.show_column_layout
+
 def set_addon_name(name : str|None = None):
     if validate(name):
         ADDON_NAME = name
 
 def get_addon_name() -> str|None:
+    p = prefs()
+    if validate(p) and hasattr(p, 'addon_name'):
+        return getattr(p, 'addon_name')
     return ADDON_NAME if validate(ADDON_NAME) else None
 
 def get_addon_module() -> Any:
@@ -3920,12 +4009,11 @@ def get_bl_info() -> BL_Info:
 def get_user_path() -> Path:
     return os.path.join(Path(bpy.utils.resource_path('USER')).parent, get_addon_name())
 
-def get_addon_preferences():
+def get_addon_preferences() -> Any:
     return bpy.context.preferences.addons[get_addon_name()].preferences
 
-def prefs():
+def prefs() -> Any:
     return get_addon_preferences()
-
 #endregion
 
 #region MATH
@@ -3934,10 +4022,77 @@ def point_dist(p1 : Vector, p2 : Vector) -> float:
     y = (p1.y - p2.y) ** 2
     z = (p1.z - p2.z) ** 2
     return float(math.sqrt(x + y + z))
+
+
 #endregion
 
 #region TEMPLATES & LISTS
-def get_prefix_chars():
+def get_identifier_chars():
     return prefix_chars
+
+def get_alphabet_list():
+    return alphabet_lower + alphabet_upper
+
+def get_digits_list():
+    return digits
+
+def get_prefix_list():
+    return [(c + s) for c in (get_alphabet_list() + get_digits_list()) for s in get_identifier_chars()]
+
+def get_suffix_list():
+    return [(s + c) for s in get_identifier_chars() for c in (get_alphabet_list() + get_digits_list())]
+
+def print_prefix_list():
+    p_list = get_prefix_list()
+    print(*p_list, sep='\n')
+
+def print_suffix_list():
+    s_list = get_suffix_list()
+    print(*s_list, sep='\n')
+
+#endregion
+
+#region STRINGS
+def vect_to_str(v : Vector = Vector(), use_parenthesis : bool = True) -> str:
+    result = str("%1.4f, %1.4f, %1.4f" % (v.x, v.y, v.z))
+    if use_parenthesis:
+        result = str("(%s)" % result)
+    return result
+
+def str_to_float(s : str, sigfigs : int = 5) -> float:
+    result = 0
+    if s is not None and s != "":
+        int_count = 0
+        decimal_pos = 0
+        for i in s.split():
+            if i.isdigit():
+                int_count += 1
+            if i == '.':
+                decimal_pos = int_count
+        result = round(float(s), sigfigs - decimal_pos)
+    return result
+
+def trim_prefixes(ref : str) -> str|None:
+    for p in get_prefix_list():
+        if ref.startswith(p):
+            return ref.removeprefix(p)
+
+def trim_suffixes(ref : str|None) -> str|None:
+    for p in get_suffix_list():
+        if ref.endswith(p):
+            return ref.removesuffix(p)
+
+#endregion
+
+#region UI
+def redraw_ui():
+    for region in bpy.context.area.regions:
+        if region.type == 'UI':
+            region.tag_redraw()
+
+def redraw_prefs():
+    for area in bpy.context.screen.areas:
+        if area.type == 'USER_PREFERENCES':
+            area.tag_redraw()
 
 #endregion
